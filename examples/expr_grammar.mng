@@ -1,5 +1,5 @@
 expr: term ( ('+' | '-') term )*
 term: factor ( ('*' | '/') factor )*
 factor: base [ '^' term ]
-base: '(' expr ')' |  NUMBER
+base: '(' expr ')' |  ['-'] NUMBER
 

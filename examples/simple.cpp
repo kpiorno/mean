@@ -15,16 +15,19 @@ public:
     }
     float expr(mn::MNNode* node)
     {
+        //expr: term ( ('+' | '-') term )*
         return arith_op(node, 0);
     }
 
     float term(mn::MNNode* node)
     {
+        //term: factor ( ('*' | '/') factor )*        
         return arith_op(node, 1);
     }
 
     float factor(mn::MNNode* node)
     {
+        //factor: base [ '^' term ]
         auto base = node->at(0);
         auto exp = node->at(2);
         float base_value = call(&base);
@@ -34,6 +37,7 @@ public:
 
     float base(mn::MNNode* node)
     {
+        //base: '(' expr ')' |  ['-'] NUMBER        
         auto n = node->at(0);
         if (n.get_meta() == 2)
         {
@@ -80,11 +84,14 @@ public:
 };
 int main(int /*argc*/, char **/*argv[]*/)
 {
+    //Class with shortcuts methods
     auto root = new mn::MNRoot();
-
+    //Class to store the encountered errors
     mn::MNErrorMsg* err = new mn::MNErrorMsg();
     auto parse_lexer = new mn::lexer::MN_Simple("expr_grammar.mn", err);
+
     auto traveler = new Expr();
+    //The run_parser method generate the tree and use the traveler class to travel it.
     std::cout << "Result is: " << root->run_parser("expr_grammar.mng", "expr",
                                                    parse_lexer, traveler) << std::endl;
     delete traveler;
