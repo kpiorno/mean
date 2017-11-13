@@ -248,6 +248,43 @@ the next output:
 
 And the tree will be right traveled because the method "walk" from traveler invoke the bound method "base" via the "call" function.
  
+### Extending Lexers
+Extending lexers adding new tokens is straighfordward, e.g:
+
+```cpp
+enum MN_PY_TOKENS
+{
+    //Please use tokens index from MN_CUSTOM_TOKEN_INDEX, values below are reserved by the library.
+    HEX = MN_CUSTOM_TOKEN_INDEX,
+    STAR
+};
+
+namespace mn
+{
+    namespace lexer
+    {
+        MN_Simple::MN_Simple(const std::string& file_name, MNErrorMsg* error_msg)
+            :MNLexer(file_name, error_msg)
+        {
+            register_custom_token("HEX", HEX);
+            register_custom_token("STAR", STAR);
+        }
+
+        MNToken* MN_Simple::next_token()
+        {
+            if (current_char == '★')
+                return ret_token(new MNToken(TK_END, "EOL", row, col));
+            ...    
+        }    
+    }
+}    
+```
+
+So, you could use the new tokens at your grammar like this:
+
+```
+SKY: (STAR)*
+```
 
 ### Limitations 
 Despite that it's possible to declare terminals tokens like identifiers or numbers via the EBNF, the "mean" library is designed to generate tokens using ```MN_Lexer``` classes. 
@@ -256,4 +293,6 @@ So regular expression to declare tokens is not supported at now. The goal is to 
 The ```* +``` operators could be used only inmediate next to ```)```. So expression like ```NAME*``` is not supported. Use ```(NAME)*``` instead.
 
 if you have a rule like: ```A: B | D| [C]``` please consider change it to the form: ```A: [B | D| [C]]``` to avoid unexpected behaviours.
+
+Comments not implemented yet.
 
