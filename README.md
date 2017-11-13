@@ -266,7 +266,9 @@ namespace mn
         MN_Simple::MN_Simple(const std::string& file_name, MNErrorMsg* error_msg)
             :MNLexer(file_name, error_msg)
         {
+            //Register the token HEX. Could be referenced at grammar definition with the alias "HEX"
             register_custom_token("HEX", HEX);
+            //Register the token STAR. Could be referenced at grammar definition with the alias "STAR"
             register_custom_token("STAR", STAR);
         }
 
