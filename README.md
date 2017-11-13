@@ -275,7 +275,8 @@ namespace mn
         MNToken* MN_Simple::next_token()
         {
             if (current_char == '★')
-                return ret_token(new MNToken(TK_END, "EOL", row, col));
+                //return the STAR token 
+                return ret_token(new MNToken(STAR, "★", row, col));
             ...    
         }    
     }
