@@ -246,7 +246,7 @@ the next output:
   |1 -- 26
 ```
 
-And the tree will right traveled because the method "walk" from traveler invoke the bound method "base" via the "call" function.
+And the tree will be right traveled because the method "walk" from traveler invoke the bound method "base" via the "call" function.
  
 
 ### Limitations 
