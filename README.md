@@ -11,6 +11,7 @@ factor: base [ '^' term ]
 base: '(' expr ')' |  NUMBER
 ```
 Code file: ```expr_grammar.mn ```
+
 ```2 ^ 6 - 1```
 
 The expression ```2 ^ 6 - 1``` will output:
