@@ -2,9 +2,9 @@
 A LL-N Grammar Parser for C++11. Fun to travel. 
 
 ### Motivation
-Mean is the result of a personal journey to parse and make custom changes to the Python 3 grammar. 
+"Mean" is the result of a personal journey to parse and make custom changes to the Python 3 grammar. 
 The library uses an EBNF-like syntax, automaticaly generates the node tree and has a funny way to travel it.
-A complete definition of the Python 3.5 grammar is at "examples" folder. Has some modifications according to the original.
+A complete definition of the Python 3.5 grammar is at "examples" folder with some modifications according to the original.
 
 ### Quickstart
 Please check the full example ```simple.cpp ``` at "examples" folder.
@@ -66,7 +66,7 @@ The nodes ```[.] - 30``` are lists.
 
 The nodes ```[?] - 17``` are optionals nodes. 
 
-The left nodes are terminals.
+The rest of the nodes are terminals.
 
 So lets do the right stuff to travel it.
 It's possible to use a custom way to do that, but luckily we have the template class ```MN_Traveler``` which help us.
