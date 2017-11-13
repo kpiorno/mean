@@ -240,7 +240,8 @@ In order to reduce the amount of nodes from generated trees, for the rules like 
 ```If [C] not encountered then A is replaced by B```. According to the last example if you change the context of file ```expr_grammar.mn ``` to 1 and execute the example, you will got
 the next output:
 
-```|base -- 100
+```
+|base -- 100
   |(?) -- 17
   |1 -- 26
 ```
