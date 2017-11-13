@@ -8,7 +8,7 @@ factor: base [ '^' term ]
 base: '(' expr ')' |  NUMBER
 ```
 
-Will output:
+The expression ```2 ^ 6 - 1``` will output:
 ```
 |expr -- 100
   |factor -- 100
