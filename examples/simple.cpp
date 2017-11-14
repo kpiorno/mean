@@ -16,13 +16,14 @@ public:
     float expr(mn::MNNode* node)
     {
         //expr: term ( ('+' | '-') term )*
-        return arith_op(node, 0);
+        return arith_op(node);
     }
 
     float term(mn::MNNode* node)
     {
-        //term: factor ( ('*' | '/') factor )*        
-        return arith_op(node, 1);
+        //term: factor ( ('*' | '/') factor )*    
+                 
+        return arith_op(node);
     }
 
     float factor(mn::MNNode* node)
@@ -39,19 +40,22 @@ public:
     {
         //base: '(' expr ')' |  ['-'] NUMBER        
         auto n = node->at(0);
-        if (n.get_meta() == 2)
+        if (n.get_meta() == 2 && n.get_lexeme() == "(")
         {
             auto expr = node->at(1);
             return call(&expr);
         }
         else
         {
-            float res = atof(n.get_lexeme().c_str());
+            auto number = node->at(1);
+            float res = atof(number.get_lexeme().c_str());
+            if (n.is_found())
+                res *= -1;
             return res;
         }
     }
 
-    float arith_op(mn::MNNode* node, int op)
+    float arith_op(mn::MNNode* node)
     {
         auto term = node->at(0);
         float res = call(&term);
@@ -60,13 +64,21 @@ public:
         {
             if ((i+1) % 2 == 0)
             {
+                auto sign_node = term_list.at(i-1);
+                char op = sign_node.get_lexeme()[0];
                 auto res_node = term_list.at(i);
                 switch (op) {
-                case 0:
+                case '+':
                     res += call(&res_node);
                     break;
-                case 1:
+                case '-':
+                    res -= call(&res_node);
+                    break;
+                case '*':
                     res *= call(&res_node);
+                    break;
+                case '/':
+                    res /= call(&res_node);
                     break;
                 default:
                     res -= call(&res_node);
