@@ -97,7 +97,7 @@ namespace mn
 
     void MNParser::recuperate()
     {
-        while ( !(current_tk_is(TK_EOL) && !current_tk_is(TK_END)) ) {
+        while ( !current_tk_is(TK_EOL) && !current_tk_is(TK_END) && !current_tk_is(TK_RULE_DEC) ) {
             consume();
         }
         if (current_tk_is(TK_EOL))
