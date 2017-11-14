@@ -274,6 +274,8 @@ namespace mn
 
         MNToken* MN_Simple::next_token()
         {
+            ...
+            //Somewhere at your "next_token" func
             if (current_char == '★')
                 //return the STAR token 
                 return ret_token(new MNToken(STAR, "★", row, col));
