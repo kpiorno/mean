@@ -156,7 +156,6 @@ public:
     float term(mn::MNNode* node)
     {
         //term: factor ( ('*' | '/') factor )*    
-                 
         return arith_op(node);
     }
 
