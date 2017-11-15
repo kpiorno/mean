@@ -18,7 +18,7 @@ base: '(' expr ')' | ['-'] NUMBER
 ```
 Create a source code file: ```expr_grammar.mn ```
 
-```2 ^ 6 - 1```
+```2 ^ 6 -- 1```
 
 So we need a ```MN_Lexer``` which will read the source code file. We could use built-in lexer "MN_Simple" which generates tokens: ```NAME, NUMBER, HEX, +, -, ^```:
 
@@ -305,7 +305,7 @@ SKY: (STAR)*
 
 ### Limitations 
 Despite that it's possible to declare terminals tokens like identifiers or numbers via the EBNF, the "mean" library is designed to generate tokens using ```MN_Lexer``` classes. 
-So regular expression to declare tokens is not supported at now. The goal is to use anothers tokens sources beyond those generated via regular expressions.
+So regular expression to declare tokens is not supported at now. The goal is to use another tokens sources beyond those generated via regular expressions.
 
 The ```* +``` operators could be used only inmediate next to ```)```. So expression like ```NAME*``` is not supported. Use ```(NAME)*``` instead.
 
