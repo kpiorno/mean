@@ -32,18 +32,28 @@ namespace mn
         return this->struct_node;
     }
 
-    inline MNDTNode* MNNode::struct_at(const unsigned int pos)
+    _FORCE_INLINE_ MNDTNode* MNNode::struct_at(const unsigned int& pos)
     {
         if (pos >= this->struct_node->max_element /*&& false*/)
         {
             //FIXME: THIS BEHAVIOUR;
             return nullptr;
         }
-        if (!cached_nodes_flag)
+        if (last_node && pos == last_pos+1)
+        {
+
+            auto node = mem->get_next_node(last_node);
+            last_pos = pos;
+            last_node = node;
+            return node;
+        }
+        else if (!cached_nodes_flag)
         {
             MNDTNode* node = mem->get_child_next_node(this->struct_node);
             for (unsigned int i=0; i < pos;++i)
                  node = mem->get_next_node(node);
+            last_pos = pos;
+            last_node = node;
             return node;
         }
         else
@@ -60,6 +70,8 @@ namespace mn
         lexemes.push_back(MN_VECTOR_NAME);
         nodes.reserve(200);
         pos = 0;
+        push_mem = false;
+        al_mem = nullptr;
     }
 
     MemoryManager::~MemoryManager()
@@ -69,7 +81,12 @@ namespace mn
 
     MNDTNode* MemoryManager::allocate()
     {
-        MNDTNode* node = mem->allocate();
+        MNDTNode* node;
+        if (!push_mem)
+            node = mem->allocate();
+        else
+            node = al_mem->allocate();
+
         if (free_pos.empty())
         {
             if (pos >= lexemes.size() )
@@ -87,69 +104,104 @@ namespace mn
             unsigned int c_pos = free_pos.top();
             free_pos.pop();
             nodes[c_pos] = node;
+            node->pos = c_pos;
             lexemes[c_pos] = MN_VECTOR_NAME;
         }
         return node;
     }
 
-    void MemoryManager::deallocate(unsigned int pos)
+    void MemoryManager::deallocate(const unsigned int& pos)
     {
         free_pos.push(pos);
         auto node = nodes[pos];
-        mem->deallocate(node);
+        //mem->deallocate(node);
+        if (!push_mem)
+            mem->deallocate(node);
+        else
+            al_mem->deallocate(node);
     }
 
-    inline std::string& MemoryManager::get_lexeme(MNDTNode *node)
+    _FORCE_INLINE_ std::string& MemoryManager::get_lexeme(MNDTNode *node)
     {
         return lexemes[node->pos];
     }
 
-    void MemoryManager::set_lexeme(MNDTNode *node, const std::string lexeme)
+    void MemoryManager::set_lexeme(MNDTNode *node, const std::string& lexeme)
     {
         lexemes[node->pos] = lexeme;
     }
 
-    inline MNDTNode* MemoryManager::get_by_pos(const unsigned int pos)
+    _FORCE_INLINE_ MNDTNode* MemoryManager::get_by_pos(const unsigned int& pos)
     {
         return nodes[pos];
     }
 
-    inline MNDTNode* MemoryManager::get_next_node(MNDTNode *node)
+    _FORCE_INLINE_ MNDTNode* MemoryManager::get_next_node(MNDTNode *node)
     {
         if (node->next_node < 0 || node->next_node >= (long int)nodes.size())
             return nullptr;
         return nodes[node->next_node];
     }
 
-    inline MNDTNode* MemoryManager::get_last_node(MNDTNode *node)
+    _FORCE_INLINE_ MNDTNode* MemoryManager::get_last_node(MNDTNode *node)
     {
         if (node->last_node < 0 || node->last_node >= (long int)nodes.size())
             return nullptr;
         return nodes[node->last_node];
     }
 
-    inline MNDTNode* MemoryManager::get_child_next_node(MNDTNode *node)
+    _FORCE_INLINE_ MNDTNode* MemoryManager::get_child_next_node(MNDTNode *node)
     {
         if (node->children_next_node < 0 || node->children_next_node >= (long int)nodes.size())
             return nullptr;
         return nodes[node->children_next_node];
     }
 
-    inline MNDTNode* MemoryManager::get_child_last_node(MNDTNode *node)
+    _FORCE_INLINE_ MNDTNode* MemoryManager::get_child_last_node(MNDTNode *node)
     {
         if (node->children_last_node < 0 || node->children_last_node >= (long int)nodes.size())
             return nullptr;
         return nodes[node->children_last_node];
     }
 
+    void MemoryManager::push()
+    {
+        if (!push_mem)
+        {
+            push_mem = true;
+            if (al_mem == nullptr)
+                al_mem = new MemoryPool<MNDTNode, DT_MEMPOOL_SIZE>();
+        }
+    }
 
-    MNNode::MNNode(MemoryManager *mem, const unsigned int /*children*/,
-                       const std::string lexeme,
-                       const unsigned int meta)
+    void MemoryManager::pop()
+    {
+        if (push_mem)
+        {
+            push_mem = false;
+            if (al_mem != nullptr)
+            {
+                delete al_mem;
+                al_mem = nullptr;
+            }
+        }
+    }
+
+
+    MNNode::MNNode(MemoryManager *mem, const unsigned int& children,
+                       const std::string& lexeme,
+                       const unsigned int& meta)
     {
         this->mem = mem;
+        last_node = nullptr;
+        last_pos = 0;
         this->struct_node = mem->allocate();
-        mem->set_lexeme(this->struct_node, lexeme);
+        if (children != 171)
+            mem->set_lexeme(this->struct_node, lexeme);
+
+#if DEBUG_LEXEME == 1
+        debug_lexeme = lexeme;
+#endif
 
 
         this->struct_node->meta = meta;
@@ -162,6 +214,40 @@ namespace mn
         this->struct_node->children_next_node = -1;
         this->struct_node->children_last_node = -1;
 
+
+        current_pos = 0;
+        this->cached_nodes_flag = false;
+        c_iter_pos = 0;
+        //replace_node(mem, children, lexeme, meta);
+    }
+
+    void MNNode::replace_node(MemoryManager *mem, const unsigned int& children,
+                       const std::string& lexeme,
+                       const unsigned int& meta)
+    {
+        this->mem = mem;
+        last_node = nullptr;
+        last_pos = 0;
+        this->struct_node = mem->allocate();
+        if (children != 171)
+            mem->set_lexeme(this->struct_node, lexeme);
+
+#if DEBUG_LEXEME == 1
+        debug_lexeme = lexeme;
+#endif
+
+
+        this->struct_node->meta = meta;
+        this->struct_node->meta_aux = -1;
+
+        this->struct_node->max_element = 0;
+        this->struct_node->children_max_element = 0;
+        this->struct_node->next_node = -1;
+        this->struct_node->last_node = -1;
+        this->struct_node->children_next_node = -1;
+        this->struct_node->children_last_node = -1;
+
+
         current_pos = 0;
         this->cached_nodes_flag = false;
         c_iter_pos = 0;
@@ -169,19 +255,40 @@ namespace mn
 
     MNNode::MNNode(MemoryManager *mem, MNDTNode *struct_node)
     {
+        last_node = nullptr;
+        last_pos = 0;
         this->mem = mem;
         this->struct_node = struct_node;
+#if DEBUG_LEXEME == 1
+        debug_lexeme = mem->get_lexeme(struct_node);
+#endif
         current_pos = this->struct_node->max_element;
         this->cached_nodes_flag = false;
         c_iter_pos = 0;
+        //replace_mem_node(mem, struct_node);
     }
 
-    MNNode* MNNode::ptr_at(const unsigned int pos)
+
+
+    void MNNode::replace_mem_node(MemoryManager *mem, MNDTNode *struct_node)
+    {
+        last_node = nullptr;
+        last_pos = 0;
+        this->mem = mem;
+        this->struct_node = struct_node;
+#if DEBUG_LEXEME == 1
+        debug_lexeme = mem->get_lexeme(struct_node);
+#endif
+        current_pos = this->struct_node->max_element;
+        this->cached_nodes_flag = false;
+    }
+
+    MNNode* MNNode::ptr_at(const unsigned int& pos)
     {
         return new MNNode(mem, struct_at(pos));
     }
 
-    MNNode MNNode::at(const unsigned int pos)
+    MNNode MNNode::at(const unsigned int& pos)
     {
         return MNNode(mem, struct_at(pos));
     }
@@ -393,12 +500,12 @@ namespace mn
         }
     }
 
-    void MNNode::set_row(unsigned int row)
+    void MNNode::set_row(const unsigned int& row)
     {
         this->struct_node->row = row;
     }
 
-    void MNNode::set_col(unsigned int col)
+    void MNNode::set_col(const unsigned int& col)
     {
         this->struct_node->col = col;
     }
@@ -467,7 +574,7 @@ namespace mn
         return table;
     }
 
-    bool MNGrammarItem::exist_keyword(std::string lexeme)
+    bool MNGrammarItem::exist_keyword(const std::string& lexeme)
     {
           if (keywords->find(lexeme)!=keywords->end())
               return true;
@@ -475,7 +582,7 @@ namespace mn
     }
 
 
-    std::vector<unsigned int>* MNGrammarItem::get_or_pos(unsigned int current, unsigned int meta)
+    std::vector<unsigned int>* MNGrammarItem::get_or_pos(const unsigned int& current, const unsigned int& meta)
     {
         auto c_or = table->find(current);
         if (c_or!=table->end())
@@ -494,7 +601,7 @@ namespace mn
         return void_v;
     }
 
-    std::vector<unsigned int>* MNGrammarItem::get_or_pos_string(unsigned int current, unsigned int meta, std::string lexeme)
+    std::vector<unsigned int>* MNGrammarItem::get_or_pos_string(const unsigned int& current, const unsigned int& meta, const std::string& lexeme)
     {
         auto c_or = table->find(current);
         if (c_or!=table->end())

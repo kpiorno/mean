@@ -40,17 +40,24 @@ namespace mn
     public:
         MNRoot();
         template <typename T, typename F>
-        F run_parser(std::string parser_file,
+        F run_parser(std::string source,
                               std::string start_terminal,
                               MNLexer* target_lexer,
                               MNTraveler<T, F>* traveler,
-                              bool log = true)
+                              bool log = true,
+                              long int cleaner=-1,
+                              bool from_file = true,
+                              std::string emitter="")
         {
+
             F result;
             MNErrorMsg* err = target_lexer->get_error_msg();
-            MN_MNLexer* lexer = new MN_MNLexer(parser_file, err);
 
+            MN_MNLexer* lexer = from_file ? new MN_MNLexer(source, err) : new MN_MNLexer(source, err, false);
             mn::MNLexer* parse_lexer = target_lexer;
+
+            traveler->set_error_msg(err);
+            traveler->set_source_lexer(target_lexer);
 
             if (!err->has_errors())
             {
@@ -65,27 +72,52 @@ namespace mn
                                                                 parse_lexer,
                                                                 err,
                                                                 mn::MN_PARSEMODE_LVERBOSE,
-                                                                true);
+                                                                true,
+                                                                2,
+                                                                cleaner,
+                                                                emitter);
+                    tree_gen->set_name("SyntaxError: ");
                     if (!err->has_errors() )
                     {
                         MNNode* node = tree_gen->generate(start_terminal);
                         if (log)
-                            node->std_output();
+                            node->std_output(/*0, "here.txt"*/);
 
-                        if (!err->has_errors() && traveler)
+                        if (/*!err->has_errors() &&*/ traveler)
                         {
-                            result = traveler->walk(node);
+                            if (!err->has_errors())
+                                result = traveler->walk(node);
+                            while (tree_gen->is_cleaner()) {
+                                delete node;
+                                node = tree_gen->generate(start_terminal);
+                                if (log)
+                                    node->std_output(/*0, "here.txt"*/);
+                                if (!err->has_errors())
+                                {
+                                   result = traveler->walk(node);
+                                }
+//                                else
+//                                    break;
+                            }
                             //delete w_res;
-                        };
+                        }
+                        else
+                            result = *(new F);
                         delete node;
                     }
+                    else
+                         result = *(new F);
                     delete tree_gen;
                 }
+                else
+                    result = *(new F);
                 delete parse;
                 delete grammar;
             }
-            if (log)
-                err->std_out_errors();
+            else
+                result = *(new F);
+            //if (log)
+            err->std_out_errors();
             delete lexer;
             return result;
         }

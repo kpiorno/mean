@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  mn_token.cpp                                                         */
+/*  mn_variant.h                                                         */
 /*************************************************************************/
 /* Copyright (c) 2017 Karel Piorno Charchabal   (kpiorno@gmail.com)      */
 /*                                                                       */
@@ -22,85 +22,79 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "mn_token.h"
-
+#ifndef MNVARIANT_H
+#define MNVARIANT_H
+#include <iostream>
+#include <vector>
+#include <travelers/mn_mn_bin.h>
+#include <mem_pool/MemoryPool.h>
+#include <atomic>
 namespace mn
 {
-    const char* MNToken::token_str[TK_MAX] =
-    {
-        "id",
-        "str",
-        "=",
-        "<",
-        ">",
-        "rule",
-        "rule_dec",
-        "(",
-        ")",
-        "[",
-        "]",
-        "{",
-        "}",
-        "|",
-        "*",
-        "+",
-        "'",
-        "\"",
-        ".",
-        "Character",
-        "EOL",
-        "INDENT",
-        "DEDENT",
-        ":",
-        ",",
-        "@",
-        "Number",
-        "END",
-    };
+struct MNVariant
+{
+   MNPyByteCode type;
+   std::string svalue;
+   union {
+      char character;
+      int16_t v16;
+      int32_t v32;
+      int vint;
+      float vfloat;
+      int64_t v64;
+      double vdouble;
+   } value;
+   explicit MNVariant(){}
+   explicit MNVariant(char value)
+   {
+       this->value.character = value;
+   }
+   explicit MNVariant(int16_t value)
+   {
+       this->value.v16 = value;
+   }
+   explicit MNVariant(int32_t value)
+   {
+       this->value.v32 = value;
+   }
+   explicit MNVariant(float value)
+   {
+       this->value.vfloat = value;
+   }
+   explicit MNVariant(int64_t value)
+   {
+       this->value.v64 = value;
+   }
+   explicit MNVariant(double value)
+   {
+       this->value.vdouble = value;
+   }
 
-    MNToken::MNToken(const unsigned int type, const std::string lexeme, const unsigned int row,
-                     const unsigned int col)
-    {
-        this->type = type;
-        this->lexeme = lexeme;
-        this->row = row;
-        this->col = col;
-    }
+   explicit MNVariant(std::string value)
+   {
+       this->svalue = value;
+   }
 
-    void MNToken::set_type(unsigned int type)
-    {
-        this->type = type;
-    }
+   _FORCE_INLINE_ void set_float(float value)
+   {
+       this->value.vfloat = value;
+   }
 
-    unsigned int MNToken::get_type() const
-    {
-        return type;
-    }
+   _FORCE_INLINE_ float get_float()
+   {
+       return this->value.vfloat;
+   }
 
-    std::string MNToken::get_lexeme()
-    {
-        return lexeme;
-    }
+   _FORCE_INLINE_ void set_double(double value)
+   {
+       this->value.vdouble = value;
+   }
 
-    std::string MNToken::get_char_position()
-    {
-        return "line: " + to_string(row) + " col: " + to_string(col);
-    }
+   _FORCE_INLINE_ double get_double()
+   {
+       return this->value.vdouble;
+   }
 
-    unsigned int  MNToken::get_row()
-    {
-        return row;
-    }
-
-    unsigned int  MNToken::get_col()
-    {
-        return col;
-    }
-
-    std::string MNToken::to_str(unsigned int type)
-    {
-        std::string result = token_str[type];
-        return result;
-    }
+};
 }
-
+#endif // MNVARIANT_H

@@ -67,6 +67,7 @@ namespace mn
         public:
             MNToken(const unsigned int type, const std::string lexeme, const unsigned int row,
                     const unsigned int col);
+            void set_type(unsigned int type);
             unsigned int get_type() const;
             std::string get_lexeme();
             std::string get_char_position();

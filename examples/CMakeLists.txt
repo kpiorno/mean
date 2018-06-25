@@ -1,7 +1,10 @@
 add_compile_options(-std=c++11)
 add_executable (simple simple.cpp)
 add_executable (python3.5 python3.5.cpp)
+add_executable (bytecode bytecode.cpp)
+
 target_include_directories (simple PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_include_directories (python3.5 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries (simple LINK_PUBLIC mean)
 target_link_libraries (python3.5 LINK_PUBLIC mean)
+target_link_libraries (bytecode LINK_PUBLIC mean)

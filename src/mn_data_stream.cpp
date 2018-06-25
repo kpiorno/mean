@@ -24,13 +24,20 @@
 /*************************************************************************/
 #include "mn_data_stream.h"
 #include <cstring>
-
+#include <mn_config.h>
 namespace mn
 {
     MN_DataStream::MN_DataStream(const std::string filename, int mode)
     {
         open(filename, mode);
         inst_count = 0;
+        little_endian = !mn::is_big_endian();
+    }
+
+    MN_DataStream::MN_DataStream()
+    {
+        inst_count = 0;
+        little_endian = !mn::is_big_endian();
     }
 
     long int MN_DataStream::get_cursor_pos()
@@ -41,6 +48,11 @@ namespace mn
     unsigned int MN_DataStream::get_inst_count()
     {
         return inst_count;
+    }
+
+    void MN_DataStream::dec_inst_count()
+    {
+        --inst_count;
     }
 
     int MN_DataStream::open(const std::string filename, int mode)
@@ -82,6 +94,7 @@ namespace mn
     MN_DataStream&  MN_DataStream::ai32(int32_t value, long int pos)
     {
         char* res = reinterpret_cast<char*>(&value);
+
         add_to_buffer(res, sizeof(int32_t), pos);
         return *this;
     }
@@ -125,9 +138,9 @@ namespace mn
 
         for (int i=0; i < count;++i)
             if (pos == -1)
-                buffer += value[i];
+                buffer += value[little_endian ? i : count - i - 1];
             else
-                buffer[pos + i] = value[i];
+                buffer[pos + i] = value[little_endian ? i : count - i - 1];
         if (pos == -1)  inst_count++;
     }
 
@@ -159,6 +172,13 @@ namespace mn
     {
           int16_t ret;
           out.read((char*)&ret, sizeof(int16_t));
+          unsigned char c1, c2;
+          if (!little_endian)
+          {
+              c1 = ret & 255;
+              c2 = (ret >> 8) & 255;
+              return (c1 << 8) + c2;
+          }
           return ret;
     }
 
@@ -166,6 +186,15 @@ namespace mn
     {
           int32_t ret;
           out.read((char*)&ret, sizeof(int32_t));
+          unsigned char c1, c2, c3, c4;
+          if (!little_endian)
+          {
+              c1 = ret & 255;
+              c2 = (ret >> 8) & 255;
+              c3 = (ret >> 16) & 255;
+              c4 = (ret >> 24) & 255;
+              return ((int)c1 << 24) + ((int)c2 << 16) + ((int)c3 << 8) + c4;
+          }
           return ret;
     }
 
@@ -173,13 +202,41 @@ namespace mn
     {
           int64_t ret;
           out.read((char*)&ret, sizeof(int64_t));
-          return ret;
+          char *p = (char *)&ret;
+          int64_t res = 0;
+          char* r = (char *)&res;
+          if (!little_endian)
+          {
+             r[0] = p[7];
+             r[1] = p[6];
+             r[2] = p[5];
+             r[3] = p[4];
+             r[4] = p[3];
+             r[5] = p[2];
+             r[6] = p[1];
+             r[7] = p[0];
+          }
+          //delete p;
+          //delete r;
+          return res;
     }
 
     double MN_DataStream::rdouble()
     {
           double ret;
           out.read((char*)&ret, sizeof(double));
+          if (!little_endian)
+          {
+              size_t s_c = sizeof(double);
+              double res = 0;
+              char* p = (char*)&ret;
+              char* r = (char*)&res;
+              for (size_t i = 0; i < s_c; ++i)
+                  r[0] = p[s_c - i - 1];
+              delete p;
+              delete r;
+              return res;
+          }
           return ret;
     }
 
@@ -187,7 +244,31 @@ namespace mn
     {
           float ret;
           out.read((char*)&ret, sizeof(float));
+          if (!little_endian)
+          {
+              size_t s_c = sizeof(float);
+              float res = 0;
+              char* p = (char*)&ret;
+              char* r = (char*)&res;
+              for (size_t i = 0; i < s_c; ++i)
+                  r[0] = p[s_c - i - 1];
+              delete p;
+              delete r;
+              return res;
+          }
           return ret;
+    }
+
+    int32_t MN_DataStream::gi32(unsigned int pos)
+    {
+        char* res = new char[4];
+        res[0] = buffer[pos];
+        res[1] = buffer[pos+1];
+        res[2] = buffer[pos+2];
+        res[3] = buffer[pos+3];
+        int32_t ret = *(int32_t*)res;
+        delete[] res;
+        return ret;
     }
 
 

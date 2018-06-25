@@ -32,8 +32,9 @@ namespace mn
     class MNErrorMsg
     {
     public:
-        MNErrorMsg(unsigned int max_err=1);
-        void add_error_text(const std::string& location, const std::string& body);
+        MNErrorMsg(unsigned int max_err=1000);
+        void add_error_text(const std::string& location, const std::string& body,
+                            std::string line="", unsigned int row=0, int col=0);
         std::vector<std::string>& get_error_list();
         bool has_errors();
         void std_out_errors(std::string filename="");

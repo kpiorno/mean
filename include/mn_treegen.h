@@ -51,23 +51,26 @@ namespace mn
     public:
         MNTreeGen(MNGrammarItem* grammar_tree, MNLexer* lexer,
                   MNErrorMsg* error_msg, MN_ParseMode mode = MN_PARSEMODE_MVERBOSE,
-                  bool minify=true, long int depth=2);
+                  bool minify=true, long int depth=2, long int cleaner=-1,
+                  std::string emitter_name="");
         ~MNTreeGen();
+        void set_name(std::string name);
         MNNode* generate(std::string entry);
-        MNNode* mn_at(MNNode* node, bool required = true);
-        MNNode* mn_or(MNNode* node, bool required = true);
-        MNNode* mn_id(MNNode* node, bool required = true);
-        MNNode* mn_rule(MNNode* node, bool required = true, bool is_rule=false) ;
-        MNNode* mn_string(MNNode* node, bool required = true);
-        MNNode* mn_vector(MNNode* node, bool required = true);
-        MNNode* mn_brackets(MNNode* node, bool required = true);
-        MNNode* mn_asterisk(MNNode* node, bool required = true);
-        MNNode* mn_character(MNNode* node, bool required = true);
-        MNNode* mn_parenthesis(MNNode* node, bool required = true);
-        MNNode* mn_parenthesis_many(MNNode* node, bool required = true);
-        MNNode* mn_parenthesis_req_many(MNNode* node, bool required = true);
-        MNNode* process(MNNode* node, bool required = true);
+        MNNode* mn_at(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_or(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_id(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_rule(MNNode* node, bool required = true, bool is_rule = false) ;
+        MNNode* mn_string(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_vector(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_brackets(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_asterisk(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_character(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_parenthesis(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_parenthesis_many(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* mn_parenthesis_req_many(MNNode* node, bool required = true, bool emitter = false);
+        MNNode* process(MNNode* node, bool required = true, bool emitter = false);
         void consume();
+        bool is_cleaner();
         MNNode* break_node();
     protected:
         mn::MNLexer* lexer;
@@ -77,23 +80,39 @@ namespace mn
         MNErrorMsg* error_msg;
         std::unordered_map<std::string, MNNode*> rules;
         MNToken* current_token;
+        MNToken* last_token;
         mn::MNNode* _break_node;
         unsigned int token_consumed;
         std::stack<rule_info> rules_info;
         std::vector<MNToken*> tokens;
         long int g_pos;
+        long int max_pos;
         MN_ParseMode p_mode;
         bool minify;
         bool agressive_remove;
         long int depth;
+        std::string emitter_name;
+        long int cleaner;
+        long int c_cleaner;
+        bool gen_cleaner;
+        bool err_state;
+        unsigned int err_count;
+        bool special_err;
+        std::string name;
     protected:
         bool is_required();
         long int _current_gpos();
-        void _restore_gpos(long int c_pos);
+        void _restore_gpos(long int c_pos, bool update_ltk=false);
         bool is_special_id();
+        bool _last_tk_err(MNNode* node = nullptr);
+        void _init_data();
+        void _delete_data();
     private:
         bool _is_valid(MNNode* node);
         bool _is_break_node(MNNode* node);
+        void _update_max_pos();
+        void _recuperate(MNNode* node);
+        void _set_error_state();
     };
 }
 

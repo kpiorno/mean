@@ -49,7 +49,8 @@ namespace mn
         else
         {
             error_msg->add_error_text("MNParser: ", "expected '" + MNToken::to_str(type) + "' token at "
-                                      + current_token->get_char_position() );
+                                      + current_token->get_char_position(),
+                                      lexer->get_line(current_token->get_row()), 0, current_token->get_col());
             recuperate();
         }
     }
@@ -159,7 +160,8 @@ namespace mn
                     if (!current_tk_is(TK_EOL))
                     {
                         error_msg->add_error_text("MNParser: ", "unexpected '" + current_token->get_lexeme() + "' at "
-                                              + current_token->get_char_position() );
+                                              + current_token->get_char_position(),
+                                              lexer->get_line(current_token->get_row()), 0, current_token->get_col());
                         recuperate();
                     }
                     consume();
@@ -192,8 +194,9 @@ namespace mn
                     }
                     else
                     {
-                        error_msg->add_error_text("MNParser: ", "expected 'an expression' at "
-                                              + current_token->get_char_position() );
+                        error_msg->add_error_text("MNParser: ", "'expression' expected at "
+                                              + current_token->get_char_position(),
+                                              lexer->get_line(current_token->get_row()), 0, current_token->get_col());
                         recuperate();
                         break;
                     }
@@ -201,7 +204,8 @@ namespace mn
             }
             else
                 error_msg->add_error_text("MNParser: ", "expected 'an expression' at "
-                                          + current_token->get_char_position() );
+                                          + current_token->get_char_position(),
+                                          lexer->get_line(current_token->get_row()), 0, current_token->get_col());
 
             return _rule.get_struct_node();
         }
@@ -240,7 +244,8 @@ namespace mn
                             }
                             else
                                 error_msg->add_error_text("MNParser: ", "expected 'a caracter' at "
-                                                      + current_token->get_char_position() );
+                                                      + current_token->get_char_position(),
+                                                      lexer->get_line(current_token->get_row()), 0, current_token->get_col());
 
                         }
                         else
@@ -311,7 +316,8 @@ namespace mn
                         }
                         else
                             error_msg->add_error_text("MNParser: ", "expected 'an expression' at "
-                                                  + current_token->get_char_position() );
+                                                  + current_token->get_char_position(),
+                                                  lexer->get_line(current_token->get_row()), 0, current_token->get_col());
 
                         MNNode expr_container(mem_pool, 100, MN_VECTOR_NAME, 1);
                         MNNode t_e(mem_pool, 100, "OR", 60);
@@ -347,7 +353,8 @@ namespace mn
                             rule_op.add_struct_node(expression());
                         else
                             error_msg->add_error_text("MNParser: ", "expected 'an expression' at "
-                                                  + current_token->get_char_position() );
+                                                  + current_token->get_char_position(),
+                                                  lexer->get_line(current_token->get_row()), 0, current_token->get_col());
 
 
                         MNNode expr_container(mem_pool, 100, MN_VECTOR_NAME, 1);
@@ -405,7 +412,8 @@ namespace mn
             if (rules.find(rule) == rules.end())
             {
                 error_msg->add_error_text("MNParser: ", "Undefined referenced rule '"
-                                      + rule + "' at row: " + to_string(row));
+                                      + rule + "' at row: " + to_string(row),
+                                      lexer->get_line(row), 0, current_token->get_col());
                 return nullptr;
             }
             return rules[rule];
@@ -526,7 +534,8 @@ namespace mn
                 std::string rrr = it.get_lexeme();
                 if (rules.find(it.get_lexeme()) != rules.end())
                     error_msg->add_error_text("MNParser: ", "Duplicated rule name: '"
-                                          + it.get_lexeme() + "'" );
+                                          + it.get_lexeme() + "'",
+                                          lexer->get_line(it.get_row()), 0, it.get_col());
 
                 rules.insert(std::make_pair(it.get_lexeme(),
                                             it.ptr_copy()));
@@ -565,7 +574,8 @@ namespace mn
                 if (it.get_meta() == 10 && rules.find(it.get_lexeme()) == rules.end())
                 {
                     error_msg->add_error_text("MNParser: ", "Undefined referenced rule '"
-                                          + it.get_lexeme() + "' at row: " + to_string(it.get_row())  );
+                                          + it.get_lexeme() + "' at row: " + to_string(it.get_row()),
+                                          lexer->get_line(it.get_row()), 0, it.get_col());
                 }
             }
         }

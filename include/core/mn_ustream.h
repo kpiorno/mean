@@ -29,18 +29,19 @@
 #include <fstream>
 #include <mn_error_msg.h>
 #include <mn_config.h>
-
+#include <list>
 namespace mn
 {
     class UStream
     {
     public:
-        UStream(std::string file_name, MNErrorMsg* error_msg);
+        UStream(std::string source, MNErrorMsg* error_msg, bool from_file);
         int32_t next_char();
         std::string codepoint_to_string(uint32_t v);
         bool eol();
         bool eof();
         bool is_upper(int32_t c);
+        std::string get_line_str(unsigned int line);
     private:
         std::string value;
         std::ifstream source_code;
@@ -49,6 +50,11 @@ namespace mn
         int _eof;
         char* current_line_char;
         int32_t current_char;
+        bool from_file;
+        unsigned int c_line_pos;
+        std::vector<std::string> lines;
+        std::string current_line_tmp;
+        std::list<uint32_t> ret_char;
     private:
         void get_line();
     };

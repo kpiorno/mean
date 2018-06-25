@@ -24,7 +24,7 @@
 /*************************************************************************/
 #ifndef MNCONFIG_H
 #define MNCONFIG_H
-
+#define FORCE_INLINE_DISABLED
 #include <fstream>
 #define MN_VECTOR_NAME "[.]"
 #define MN_NT_VALUE 100
@@ -37,6 +37,31 @@
 #define MN_TG_LIST 30
 #include <sstream>
 
+
+#ifndef _ALWAYS_INLINE_
+
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+#define _ALWAYS_INLINE_ __attribute__((always_inline)) inline
+#elif defined(__llvm__)
+#define _ALWAYS_INLINE_ __attribute__((always_inline)) inline
+#elif defined(_MSC_VER)
+#define _ALWAYS_INLINE_ __forceinline
+#else
+#define _ALWAYS_INLINE_ inline
+#endif
+
+#endif
+
+#ifndef _FORCE_INLINE_
+#ifdef FORCE_INLINE_DISABLED
+#define _FORCE_INLINE_ inline
+#else
+#define _FORCE_INLINE_ _ALWAYS_INLINE_
+#endif
+#endif
+
+
+#define allocnew(m_class) new m_class
 
 
 namespace mn

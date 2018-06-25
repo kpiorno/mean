@@ -26,8 +26,8 @@
 
 namespace mn
 {
-    MN_MNLexer::MN_MNLexer(const std::string& file_name, MNErrorMsg* error_msg)
-        :MNLexer(file_name, error_msg)
+    MN_MNLexer::MN_MNLexer(const std::string& file_name, MNErrorMsg* error_msg, bool from_file)
+        :MNLexer(file_name, error_msg, from_file)
     {
         request_end = false;
     }
@@ -36,6 +36,7 @@ namespace mn
     {
         /*if (request_end)
             return ret_token(  new MNToken(TK_END, "END", row, col) );*/
+
         if (source_code->eof())
         {
             request_end = true;
@@ -50,6 +51,12 @@ namespace mn
         }
 
         switch (current_char) {
+        case '#':
+            while (!eol()){
+                next_char();
+            }
+            next_char();
+            return ret_token( next_token());
         case '<':
             return rule();
             break;
@@ -124,7 +131,8 @@ namespace mn
                     res += current_char;
                     error_msg->add_error_text("Lexer: ", "character '"
                                               + res + "' not expected at "
-                                              + get_char_position() );
+                                              + get_char_position(),
+                                              get_line(row), 0, col);
                     next_char();
                 }
             }
@@ -154,7 +162,8 @@ namespace mn
             {
                 consume = false;
                 error_msg->add_error_text("Lexer: ", "expected '>' "
-                                                     "symbol at " + get_char_position() );
+                                                     "symbol at " + get_char_position(),
+                                                     get_line(row), 0, col);
             }
             else
             if (current_char != '>')
@@ -180,7 +189,8 @@ namespace mn
             {
                 consume = false;
                 error_msg->add_error_text("Lexer: ", "expected '\"' "
-                                                     "symbol at " + get_char_position() );
+                                                     "symbol at " + get_char_position(),
+                                                     get_line(row), 0, col);
             }
             else
             if (current_char != '"')
@@ -232,11 +242,13 @@ namespace mn
            lexeme = source_code->codepoint_to_string(current_char);
         else
             error_msg->add_error_text("Lexer: ", "expected a "
-                                                 "caracter at " + get_char_position() );
+                                                 "caracter at " + get_char_position(),
+                                                 get_line(row), 0, col);
         next_char();
         if (current_char != '\'')
             error_msg->add_error_text("Lexer: ", "expected '\'' "
-                                                 "symbol at " + get_char_position() );
+                                                 "symbol at " + get_char_position(),
+                                                 get_line(row), 0, col);
         else
             next_char();
 

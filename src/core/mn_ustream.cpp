@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  ustream.cpp                                                        */
+/*  mn_ustream.cpp                                                       */
 /*************************************************************************/
 /* Copyright (c) 2017 Karel Piorno Charchabal   (kpiorno@gmail.com)      */
 /*                                                                       */
@@ -28,15 +28,24 @@
 
 namespace mn
 {
-    UStream::UStream(std::string file_name, MNErrorMsg* error_msg):error_msg(error_msg)
+    UStream::UStream(std::string source, MNErrorMsg* error_msg, bool from_file):error_msg(error_msg)
     {
         _eof = 0;
-        value = file_name;
-        source_code.open(file_name.c_str());
-        //std::cout << file_name.c_str() << std::endl;
-        if (!source_code.is_open())
-            error_msg->add_error_text("UStream: ", file_name + " not found");
-        get_line();
+        c_line_pos = 0;
+        this->from_file = from_file;
+        value = source;
+        lines.clear();
+        current_line_tmp = "";
+        if (from_file)
+        {
+            source_code.open(source.c_str());
+            //std::cout << file_name.c_str() << std::endl;
+            if (!source_code.is_open())
+                error_msg->add_error_text("UStream: ", source + " not found","", 0, 0);
+            get_line();
+        }
+        if (!from_file)
+            current_line_char = (char*)value.c_str();
         //next_char();
     }
 
@@ -58,35 +67,138 @@ namespace mn
         return false;
     }
 
+
     int32_t UStream::next_char()
     {
-        current_char = utf8::next(current_line_char, current_line_char+9);
-        if (current_char == 0 || current_char == '\n')
+        int result=0;
+        if (!from_file)
         {
-            get_line();
-            if (current_char == 0 && _eof == 1)
+            while (!ret_char.empty()) {
+               int32_t r = ret_char.front();
+               ret_char.pop_front();
+               return r;
+            }
+        }
+        current_char = utf8::next_sec(current_line_char, current_line_char+9, result);
+        if (current_char == 0 || current_char == '\n' || current_char == '\r' || int(current_char) == 10
+                || result)
+        {
+            if (from_file)
+            {
+                get_line();
+            }
+            if ((current_char == 0 && (_eof == 1 || !from_file)) || result)
             {
                 _eof = 2;
             }
+            if (!from_file)
+            {
+                lines.push_back(current_line_tmp);
+                current_line_tmp = "";
+            }
             current_char = '\n';
         }
+        if (result)
+            current_char = ' ';
+        if (current_char != '\n')
+            current_line_tmp += codepoint_to_string(current_char);
         return current_char;
     }
 
     std::string UStream::codepoint_to_string(uint32_t v)
     {
-       unsigned char u[5] = {0,0,0,0,0};
+       unsigned char u[6] = {0,0,0,0,0,0};
        /*unsigned char* end = */utf8::unchecked::append(v, u);
        return std::string((char*)u);
     }
 
     void UStream::get_line()
     {
-        if (source_code.eof())
-            _eof = 1;
         current_line = "";
-        std::getline(source_code, current_line);
-        current_line_char = (char*)current_line.c_str();
+        if (from_file)
+        {
+            if (source_code.eof())
+                _eof = 1;
+            std::getline(source_code, current_line);
+
+            current_line_char = (char*)current_line.c_str();
+        }
+    }
+
+    std::string UStream::get_line_str(unsigned int line)
+    {
+        if (from_file)
+        {
+            std::ifstream source;
+            source.open(value.c_str());
+            std::string t_line = "";
+            bool eof_enc = false;
+            for (unsigned int i=0; i < line; ++i)
+            {
+                if (source.eof())
+                {
+                    eof_enc = true;
+                    break;
+                }
+                std::getline(source, t_line);
+            }
+            std::string ret_line = "";
+
+            if (!eof_enc)
+            {
+                char* current_line_char = (char*)t_line.c_str();
+
+                int32_t current_char = 0;
+                for (;;)
+                {
+                    current_char = utf8::next(current_line_char, current_line_char+9);
+                    if (current_char == 0 || current_char == '\n' || current_char == '\r' || int(current_char) == 10)
+                       break;
+                    ret_line += codepoint_to_string(current_char);
+                }
+            }
+            return ret_line;
+        }
+        else
+        {
+            if (line-1 >= lines.size())
+            {
+                std::string ret_line = "";
+                if (_eof == 2)
+                {
+                    return current_line_tmp;
+                }
+                int result=0;
+                for (;;)
+                {
+                    current_char = utf8::next_sec(current_line_char, current_line_char+9, result);
+                    if (current_char == 0 && result)
+                    {
+                        current_char = '\n';
+                    }
+                    if (!result)
+                        ret_char.push_back(current_char);
+                    else
+                        ret_char.push_back(' ');
+                    if (current_char == 0 || current_char == '\n' || current_char == '\r' || int(current_char) == 10 || result)
+                       break;
+                    if(result)
+                        current_char = ' ';
+                    ret_line += codepoint_to_string(current_char);
+                }
+                if (result)
+                    _eof = 2;
+                lines.push_back(current_line_tmp + ret_line);
+                ret_line = current_line_tmp + ret_line;
+                current_line_tmp = "";
+                return ret_line;
+            }
+            else if (line-1 < lines.size())
+            {
+                return lines[line-1];
+            }
+        }
+        return "";
     }
 
 }

@@ -46,8 +46,7 @@ namespace mn
         MNDTNode* gen_struct_node_from_token();
         void recuperate();
         virtual MNGrammarItem* parse() = 0;
-    private:
-        MNLexer* lexer;
+
     private:
         unsigned int gen_meta();
     protected:
@@ -55,6 +54,7 @@ namespace mn
         MNErrorMsg* error_msg;
         MemoryManager* mem_pool;
         MNLexer* p_lexer;
+        MNLexer* lexer;
     };
 
 

@@ -32,10 +32,10 @@ namespace mn
 {
     namespace lexer
     {
-        MN_Simple::MN_Simple(const std::string& file_name, MNErrorMsg* error_msg)
-            :MNLexer(file_name, error_msg)
+        MN_Simple::MN_Simple(const std::string& source, MNErrorMsg* error_msg, bool from_file)
+            :MNLexer(source, error_msg, from_file)
         {
-            register_custom_token("HEX", HEX);
+            register_token("HEX", HEX);
         }
 
         MNToken* MN_Simple::next_token()
@@ -90,7 +90,8 @@ namespace mn
                     consume = false;
                     std::string res = (delimiter == '"' ? "\"" : "'");
                     error_msg->add_error_text("Simple_Lexer: ", "expected '" + res + "' "
-                                                         "symbol at " + get_char_position() );
+                                                         "symbol at " + get_char_position(),
+                                                          get_line(row), 0, col);
                 }
                 else
                 if (current_char != delimiter)
@@ -157,7 +158,8 @@ namespace mn
                         else
                         {
                             error_msg->add_error_text("Simple_Lexer: ", "duplicated '.' at "
-                                                                 + get_char_position() );
+                                                                 + get_char_position(),
+                                                                   get_line(row), 0, col);
                         }
                     }
                     lexeme += source_code->codepoint_to_string(current_char);
@@ -179,11 +181,13 @@ namespace mn
                lexeme += source_code->codepoint_to_string(current_char);
             else
                 error_msg->add_error_text("Simple_Lexer: ", "expected a "
-                                                     "caracter at " + get_char_position() );
+                                                     "caracter at " + get_char_position(),
+                                                     get_line(row), 0, col);
             next_char();
             if (current_char != '\'')
                 error_msg->add_error_text("Simple_Lexer: ", "expected '\'' "
-                                                     "symbol at " + get_char_position() );
+                                                     "symbol at " + get_char_position(),
+                                                     get_line(row), 0, col);
             else
                 next_char();
 

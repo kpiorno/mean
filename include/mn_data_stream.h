@@ -26,18 +26,19 @@
 #define MN_HDATASTREAM
 #include <iostream>
 #include <fstream>
-
+//TODO: Deals with endianess
 namespace mn
 {
     class MN_DataStream
     {
     public:
-        MN_DataStream() {inst_count = 0;}
+        MN_DataStream();
         MN_DataStream(std::string filename, int mode=0);
         ~MN_DataStream();
 
         long int get_cursor_pos();
         unsigned int get_inst_count();
+        void dec_inst_count();
         int open(std::string filename, int mode=0);
         void close();
         MN_DataStream& ai8(int8_t value, long int pos = -1);
@@ -59,6 +60,8 @@ namespace mn
         int64_t ri64();
         double rdouble();
         float rfloat();
+
+        int32_t gi32(unsigned int pos);
 
         template <typename T>
         MN_DataStream& operator << (T& obj)
@@ -82,6 +85,7 @@ namespace mn
     protected:
         std::fstream out;
         std::string buffer;
+        bool little_endian;
         unsigned int inst_count;
         void add_to_buffer(char* value, int count, long int pos = -1);
     };

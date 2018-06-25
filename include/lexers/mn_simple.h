@@ -13,7 +13,7 @@ namespace mn
         class MN_Simple: public mn::MNLexer
         {
             public:
-                MN_Simple(const std::string& file_name, MNErrorMsg* error_msg);
+                MN_Simple(const std::string& source, MNErrorMsg* error_msg, bool from_file = true);
                 MNToken* next_token();
 
             protected:

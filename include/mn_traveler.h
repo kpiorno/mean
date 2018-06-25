@@ -26,7 +26,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include <mn_data_struct.h>
-#include <delegate/delegate.h>
+#include <mn_error_msg.h>
+#include <mn_lexer.h>
 
 template <class T, class R>
 class MN_FuncCall
@@ -61,7 +62,20 @@ namespace mn
         MNTraveler()
         {
             //this->tree = tree;
+            error_msg = nullptr;
+            source_lexer = nullptr;
         }
+
+        void set_error_msg(MNErrorMsg* error_msg)
+        {
+            this->error_msg = error_msg;
+        }
+
+        void set_source_lexer(MNLexer* lexer)
+        {
+            this->source_lexer = lexer;
+        }
+
         virtual ~MNTraveler()
         {
             for (auto it : funcs)
@@ -86,15 +100,20 @@ namespace mn
 
         R call(MNNode *node)
         {
-            R result;
-            if (node->get_meta() == MN_NT_VALUE)
+           R result;
+           if (node->get_meta() == MN_NT_VALUE)
             {
-                if (funcs.find(node->get_lexeme())!=funcs.end())
+
+               if (funcs.find(node->get_lexeme())!=funcs.end())
                 {
                     auto f = funcs[node->get_lexeme()];
                     result = f->exec(node);
                 }
+               else
+                   result = *(new R);
             }
+           else
+               result = *(new R);
             return result;
         }
 
@@ -110,10 +129,11 @@ namespace mn
 
     protected:
         void _pre_order(MNNode& node);
-
     protected:
         //MNNode* tree;
         std::unordered_map<std::string, MNFunc*> funcs;
+        MNErrorMsg* error_msg;
+        MNLexer* source_lexer;
     };
 
 

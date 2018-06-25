@@ -149,7 +149,7 @@ MemoryPool<T, BlockSize>::allocateBlock()
 
 template <typename T, size_t BlockSize>
 inline typename MemoryPool<T, BlockSize>::pointer
-MemoryPool<T, BlockSize>::allocate(size_type n, const_pointer hint)
+MemoryPool<T, BlockSize>::allocate(size_type /*n*/, const_pointer /*hint*/)
 {
   if (freeSlots_ != nullptr) {
     pointer result = reinterpret_cast<pointer>(freeSlots_);
@@ -167,7 +167,7 @@ MemoryPool<T, BlockSize>::allocate(size_type n, const_pointer hint)
 
 template <typename T, size_t BlockSize>
 inline void
-MemoryPool<T, BlockSize>::deallocate(pointer p, size_type n)
+MemoryPool<T, BlockSize>::deallocate(pointer p, size_type /*n*/)
 {
   if (p != nullptr) {
     reinterpret_cast<slot_pointer_>(p)->next = freeSlots_;

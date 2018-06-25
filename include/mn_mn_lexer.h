@@ -35,7 +35,7 @@ namespace mn
     class MN_MNLexer: public mn::MNLexer
     {
         public:
-            MN_MNLexer(const std::string& file_name, MNErrorMsg* error_msg);
+            MN_MNLexer(const std::string& file_name, MNErrorMsg* error_msg, bool from_file = true);
             MNToken* next_token();
             std::string next_token_str();
 

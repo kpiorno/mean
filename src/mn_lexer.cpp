@@ -27,9 +27,9 @@
 
 namespace mn
 {
-    MNLexer::MNLexer(const std::string& file_name, MNErrorMsg* error_msg)
+    MNLexer::MNLexer(const std::string& source, MNErrorMsg* error_msg, bool from_file)
     {
-        source_code = new UStream(file_name.c_str(), error_msg);
+        source_code = new UStream(source.c_str(), error_msg, from_file);
         //source_code.open(file_name.c_str());
         //std::cout << file_name.c_str() << std::endl;
         /*if (!source_code.is_open())
@@ -58,7 +58,7 @@ namespace mn
 
     std::string MNLexer::get_char_position()
     {
-        return "row: " + to_string(row) + " col: " + to_string(col);
+        return "line: " + to_string(row) + " col: " + to_string(col);
     }
 
 
@@ -79,7 +79,7 @@ namespace mn
 
     bool MNLexer::is_space(int32_t c)
     {
-        if (c == ' ' || c == '\n' || c == '\r' || c == 0x0020)
+        if (c == ' ' || c == '\n' || c == '\r' || c == 0x0020 || c == 9)
             return true;
         return false;
     }
@@ -121,7 +121,7 @@ namespace mn
         }
     }
 
-    void MNLexer::register_custom_token(std::string name, unsigned int type, bool compare_lexeme)
+    void MNLexer::register_token(std::string name, unsigned int type, bool compare_lexeme)
     {
        c_token reg; reg.type = type; reg.compare_lexeme = compare_lexeme; reg.exist_custom_token = true;
        custom_tokens[name] = reg;
@@ -186,6 +186,21 @@ namespace mn
             return false;
     }
 
+    bool MNLexer::clean_token(MNToken* /*token*/)
+    {
+        return false;
+    }
+
+    bool MNLexer::recuperate_token(MNToken* /*token*/)
+    {
+        return false;
+    }
+
+    void MNLexer::notify_error(mn::MNNode* /*node*/)
+    {
+
+    }
+
 
     MNToken* MNLexer::ret_token(MNToken *token)
     {
@@ -205,7 +220,10 @@ namespace mn
         return error_msg;
     }
 
-
+    std::string MNLexer::get_line(unsigned int line)
+    {
+        return source_code->get_line_str(line);
+    }
 
 }
 

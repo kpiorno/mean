@@ -32,7 +32,7 @@
 #include <mn_token.h>
 #include <mn_error_msg.h>
 #include <core/mn_ustream.h>
-
+#include <mn_data_struct.h>
 struct t_data
 {
     int row, col;
@@ -58,7 +58,7 @@ namespace mn
     class MNLexer
     {
         public:
-            MNLexer(const std::string& file_name, MNErrorMsg* error_msg);
+            MNLexer(const std::string& source, MNErrorMsg* error_msg, bool from_file=true);
             virtual ~MNLexer() {delete source_code;}
             virtual MNToken* next_token()=0;
             bool eof();
@@ -67,11 +67,16 @@ namespace mn
             t_data current_token_info();
             void set_current_token_info(t_data info);
             bool is_max_token();
+            virtual bool clean_token(MNToken* token);
+            virtual bool recuperate_token(MNToken* token);
+            virtual void notify_error(mn::MNNode* node=nullptr);
+
             void next_char();
-            void register_custom_token(std::string name, unsigned int type, bool compare_lexeme=false);
+            void register_token(std::string name, unsigned int type, bool compare_lexeme=false);
             c_token get_custom_token(std::string name);
             c_token get_custom_token(unsigned int type);
             MNErrorMsg* get_error_msg();
+            std::string get_line(unsigned int line);
 
         protected:
             void register_reserverd_word(const std::string& name);

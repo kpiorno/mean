@@ -33,6 +33,7 @@
 #include <stack>
 #include <mn_config.h>
 
+#define DEBUG_LEXEME 1
 
 namespace mn
 {
@@ -71,44 +72,54 @@ namespace mn
         MemoryManager();
         ~MemoryManager();
         MNDTNode* allocate();
-        void deallocate(unsigned int pos);
+        void deallocate(const unsigned int& pos);
 
         std::string& get_lexeme(MNDTNode* node);
-        void set_lexeme(MNDTNode* node, const std::string lexeme);
-        MNDTNode* get_by_pos(const unsigned int pos);
+        void set_lexeme(MNDTNode* node, const std::string& lexeme);
+        MNDTNode* get_by_pos(const unsigned int& pos);
         MNDTNode* get_next_node(MNDTNode* node);
         MNDTNode* get_last_node(MNDTNode* node);
         MNDTNode* get_child_next_node(MNDTNode* node);
         MNDTNode* get_child_last_node(MNDTNode* node);
-
+        void push();
+        void pop();
     private:
         std::vector<std::string> lexemes;
         std::vector<MNDTNode*> nodes;
         MemoryPool<MNDTNode, DT_MEMPOOL_SIZE>* mem;
+        MemoryPool<MNDTNode, DT_MEMPOOL_SIZE>* al_mem;
         std::stack<unsigned int> free_pos;
         unsigned int pos;
+        bool push_mem;
     };
 
     class MNNode
     {
     public:
         MNNode(MemoryManager* mem,
-               const unsigned int children = 0,
-               const std::string lexeme = MN_VECTOR_NAME,
-               const unsigned int meta = 0
+               const unsigned int& children = 0,
+               const std::string& lexeme = MN_VECTOR_NAME,
+               const unsigned int& meta = 0
                );
         MNNode(MemoryManager* mem,
                MNDTNode* struct_node);
+
         MNDTNode* get_struct_node();
-        MNDTNode* struct_at(const unsigned int pos);
-        MNNode* ptr_at(const unsigned int pos);
-        MNNode at(const unsigned int pos);
+        MNDTNode* struct_at(const unsigned int& pos);
+        MNNode* ptr_at(const unsigned int& pos);
+        MNNode at(const unsigned int& pos);
         MNNode* ptr_copy();
 
         MNNode* ptr_clone();
 
         void add_node(MNNode* node);
         void add_struct_node(MNDTNode* struct_node);
+        void replace_node(MemoryManager* mem,
+                          const unsigned int& children = 0,
+                          const std::string& lexeme = MN_VECTOR_NAME,
+                          const unsigned int& meta = 0);
+        void replace_mem_node(MemoryManager* mem,
+                              MNDTNode* struct_node);
 
         unsigned int get_row();
         unsigned int get_col();
@@ -132,14 +143,15 @@ namespace mn
         void deallocate();
         void break_by_max_count();
 
-        void set_row(unsigned int row);
-        void set_col(unsigned int col);
+        void set_row(const unsigned int& row);
+        void set_col(const unsigned int& col);
 
         bool is_found();
         bool is_break_node();
         bool is_list();
         bool is_req_list();
         bool non_terminal();
+
 
         class iterator
         {
@@ -210,7 +222,11 @@ namespace mn
         bool cached_nodes_flag;
         std::vector<MNDTNode*> cached_nodes;
         unsigned int c_iter_pos;
-        //std::string lexeme;
+        MNDTNode* last_node;
+        unsigned int last_pos;
+#if DEBUG_LEXEME == 1
+        std::string debug_lexeme;
+#endif
 
     };
 
@@ -221,10 +237,10 @@ namespace mn
             ~MNGrammarItem();
             MNNode* get_node();
             table_map* get_table();
-            bool exist_keyword(std::string lexeme);
-            std::vector<unsigned int>* get_or_pos(unsigned int current, unsigned int meta);
-            std::vector<unsigned int>* get_or_pos_string(unsigned int current,
-                                                         unsigned int meta, std::string lexeme);
+            bool exist_keyword(const std::string& lexeme);
+            std::vector<unsigned int>* get_or_pos(const unsigned int& current, const unsigned int& meta);
+            std::vector<unsigned int>* get_or_pos_string(const unsigned int& current,
+                                                         const unsigned int& meta, const std::string& lexeme);
         protected:
             MNNode* node;
             table_map* table;

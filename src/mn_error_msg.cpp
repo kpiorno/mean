@@ -31,9 +31,20 @@ namespace mn
 
     }
 
-    void MNErrorMsg::add_error_text(const std::string &location, const std::string &body)
+    void MNErrorMsg::add_error_text(const std::string &location, const std::string &body,
+                                    std::string line, unsigned int /*row*/, int col)
     {
         msgs.push_back(location + body);
+        if (!line.empty())
+        {
+            msgs.push_back(line);
+            std::string err_sym = "";
+            for (int i=0; i < col-1; ++i)
+               err_sym += ' ';
+            err_sym += '^';
+            msgs.push_back(err_sym);
+
+        }
     }
 
     std::vector<std::string>& MNErrorMsg::get_error_list()

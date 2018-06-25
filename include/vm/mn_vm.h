@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  mn_token.cpp                                                         */
+/*  mn_vm.h                                                              */
 /*************************************************************************/
 /* Copyright (c) 2017 Karel Piorno Charchabal   (kpiorno@gmail.com)      */
 /*                                                                       */
@@ -22,85 +22,42 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "mn_token.h"
+#ifndef MNVM_H
+#define MNVM_H
+#include <iostream>
+#include <vector>
+#include <travelers/mn_mn_bin.h>
+#include <vm/mn_variant.h>
+#include <vm/mn_ctrav.h>
+#include <vm/mn_interp.h>
+#include <mem_pool/MemoryPool.h>
+
 
 namespace mn
 {
-    const char* MNToken::token_str[TK_MAX] =
-    {
-        "id",
-        "str",
-        "=",
-        "<",
-        ">",
-        "rule",
-        "rule_dec",
-        "(",
-        ")",
-        "[",
-        "]",
-        "{",
-        "}",
-        "|",
-        "*",
-        "+",
-        "'",
-        "\"",
-        ".",
-        "Character",
-        "EOL",
-        "INDENT",
-        "DEDENT",
-        ":",
-        ",",
-        "@",
-        "Number",
-        "END",
-    };
-
-    MNToken::MNToken(const unsigned int type, const std::string lexeme, const unsigned int row,
-                     const unsigned int col)
-    {
-        this->type = type;
-        this->lexeme = lexeme;
-        this->row = row;
-        this->col = col;
-    }
-
-    void MNToken::set_type(unsigned int type)
-    {
-        this->type = type;
-    }
-
-    unsigned int MNToken::get_type() const
-    {
-        return type;
-    }
-
-    std::string MNToken::get_lexeme()
-    {
-        return lexeme;
-    }
-
-    std::string MNToken::get_char_position()
-    {
-        return "line: " + to_string(row) + " col: " + to_string(col);
-    }
-
-    unsigned int  MNToken::get_row()
-    {
-        return row;
-    }
-
-    unsigned int  MNToken::get_col()
-    {
-        return col;
-    }
-
-    std::string MNToken::to_str(unsigned int type)
-    {
-        std::string result = token_str[type];
-        return result;
-    }
+const size_t ME_MEMPOOL_SIZE = sizeof(MNVariant)*64;
+class MN_VM
+{
+public:
+    MN_VM(std::string name);
+    ~MN_VM();
+    void process();
+    void exec_traveler(mn::MNCTrav* trav);
+protected:
+    void add_command(MNPyByteCode type);
+    void add_i16(int16_t value);
+    void add_i32(int32_t value);
+    void add_float(float value);
+    void add_str(std::string value);
+    void add_element(MNPyByteCode type, unsigned int value);
+    void push_back(MNVariant* e);
+private:
+    std::string _gen_opcode_spaces(std::string opcode);
+    std::string name;
+    std::vector<MNVariant*>* e_data;
+    MemoryPool<MNVariant, ME_MEMPOOL_SIZE>* m_pool;
+    std::stringstream dis;
+    unsigned int c_reserve;
+};
 }
-
+#endif // MNX86_H

@@ -154,6 +154,27 @@ namespace utf8
     }
 
     template <typename octet_iterator>
+    uint32_t next_sec(octet_iterator& it, octet_iterator end, int &res)
+    {
+        uint32_t cp = 0;
+        internal::utf_error err_code = utf8::internal::validate_next(it, end, cp);
+//        switch (err_code) {
+//            case internal::UTF8_OK :
+//                break;
+//            case internal::NOT_ENOUGH_ROOM :
+//                throw not_enough_room();
+//            case internal::INVALID_LEAD :
+//            case internal::INCOMPLETE_SEQUENCE :
+//            case internal::OVERLONG_SEQUENCE :
+//                throw invalid_utf8(*it);
+//            case internal::INVALID_CODE_POINT :
+//                throw invalid_code_point(cp);
+//        }
+        res = err_code;
+        return cp;
+    }
+
+    template <typename octet_iterator>
     uint32_t peek_next(octet_iterator it, octet_iterator end)
     {
         return utf8::next(it, end);
