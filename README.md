@@ -4,7 +4,7 @@ A LL-N Grammar Parser for C++11. Fun to travel. Python-like bytecode generator a
 ### Motivation
 "Mean" is the result of a personal journey to parse and make custom changes to the Python 3 grammar. 
 The library uses an EBNF-like syntax, automaticaly generates the node tree and has a funny way to travel it. Support a
-Python-like bytecode generator and a mechanism for traveling it for Virtual Machines, Generators, etc...  More detais at "examples" folder. 
+Python-like bytecode generator and a mechanism for traveling it for Virtual Machines, Generators, etc...  More details at "examples" folder. 
 
 ### Quickstart
 Please check the full example ```simple.cpp ``` at "examples" folder.
