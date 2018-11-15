@@ -310,5 +310,3 @@ The ```* +``` operators could be used only inmediate next to ```)```. So express
 
 if you have a rule like: ```A: B | D | [C]``` please consider change it to the form: ```A: [B | D | [C]]``` to avoid unexpected behaviours.
 
-Comments not implemented yet.
-
